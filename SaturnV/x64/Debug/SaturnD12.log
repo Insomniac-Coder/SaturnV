@@ -1,0 +1,6 @@
+﻿  Renderer.cpp
+C:\Dev\SaturnD12\SaturnD12\Engine\Core\Renderer.cpp(105,21): warning C4018: '<': signed/unsigned mismatch
+C:\Dev\SaturnD12\SaturnD12\Engine\Core\Renderer.cpp(248,20): warning C4018: '<': signed/unsigned mismatch
+C:\Dev\SaturnD12\SaturnD12\Engine\Core\Renderer.cpp(291,20): warning C4018: '<': signed/unsigned mismatch
+C:\Dev\SaturnD12\SaturnD12\Engine\Core\Renderer.cpp(474): warning C4715: 'Saturn::Renderer::GetBestSwapExtent': not all control paths return a value
+  SaturnD12.vcxproj -> C:\Dev\SaturnD12\x64\Debug\SaturnD12.exe

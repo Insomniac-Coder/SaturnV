@@ -1,0 +1,4 @@
+*.user
+x64/*
+Saturn/x64/*
+.vs/*
