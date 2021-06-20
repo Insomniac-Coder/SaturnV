@@ -11,6 +11,9 @@
 #include <stdexcept>
 #include <vector>
 #include <algorithm>
+#include "VertexBuffer.h"
+#include "VertexAttributes.h"
+#include "Mesh.h"
 
 namespace Saturn {
 
@@ -28,7 +31,7 @@ namespace Saturn {
 		int r_Height;
 		int r_VirtualWidth;
 		int r_VirtualHeight;
-		glm::vec4 r_ClearColor = glm::vec4(0.05f, 0.05f, 0.05f, 1.0f);
+		glm::vec4 r_ClearColor = glm::vec4(0.15f, 0.15f, 0.15f, 1.0f);
 
 		//Vulkan Components
 		const std::vector<const char*> r_ValidationLayers = {
@@ -84,6 +87,21 @@ namespace Saturn {
 		};
 
 		std::vector<SwapchainImage> r_SwapchainImages;
+		std::vector<VkFramebuffer> r_SwapChainFrameBuffer;
+		std::vector<VkCommandBuffer> r_CommandBuffers;
+
+		VkPipeline r_GraphicsPipeline;
+		VkPipelineLayout r_PipelineLayout;
+		VkRenderPass r_RenderPass;
+
+		VkCommandPool r_GraphicsCommandPool;
+
+		//Sync
+		std::vector<VkSemaphore> r_ImageAvailable;
+		std::vector<VkSemaphore> r_RenderFinished;
+		std::vector<VkFence> r_DrawFences;
+
+		std::vector<Mesh> r_Meshes;
 
 		//Vulkan specific functions
 		bool CheckValidationLayerSupport();
@@ -103,7 +121,16 @@ namespace Saturn {
 		int CreateSwapChain();
 		VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 		int CreateGraphicsPipeline();
+		int CreateRenderPass();
+		int CreateFrameBuffers();
+		int CreateCommandPool();
+		int CreateCommandBuffers();
+		int RecordCommands();
+		void Draw();
 		VkShaderModule CreateShaderModule(const std::vector<char>& code);
+		int CreateSynchronisation();
+		const int MAX_FRAME_DRAWS = 2;
+		int currentFrame = 0;
 	};
 
 }

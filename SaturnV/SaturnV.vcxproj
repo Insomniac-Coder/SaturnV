@@ -88,16 +88,22 @@
     <ClCompile Include="Engine\Log\Log.cpp" />
     <ClCompile Include="Engine\Core\Window.cpp" />
     <ClCompile Include="Engine\Core\Renderer.cpp" />
+    <ClCompile Include="Engine\Core\VertexBuffer.cpp" />
+    <ClCompile Include="Engine\Core\VertexAttributes.cpp" />
+    <ClCompile Include="Engine\Core\Mesh.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Core\Application.h" />
+    <ClInclude Include="Engine\Core\BasicShapes.h" />
     <ClInclude Include="Engine\Core\Entrypoint.h" />
     <ClInclude Include="Engine\Core\FileIO.h" />
-    <ClInclude Include="Engine\Core\Helper.h" />
     <ClInclude Include="Engine\Log\Log.h" />
     <ClInclude Include="Engine\Saturn.h" />
     <ClInclude Include="Engine\Core\Window.h" />
     <ClInclude Include="Engine\Core\Renderer.h" />
+    <ClInclude Include="Engine\Core\VertexBuffer.h" />
+    <ClInclude Include="Engine\Core\VertexAttributes.h" />
+    <ClInclude Include="Engine\Core\Mesh.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\compile.bat" />
