@@ -6,6 +6,7 @@
 #include <vector>
 #include "BasicShapes.h"
 #include "../Log/Log.h"
+#include "VulkanFunctionality/VulkanCore.h"
 
 namespace Saturn
 {
@@ -29,8 +30,7 @@ namespace Saturn
 		VkPhysicalDevice m_PhysicalDevice;
 		VkDevice m_LogicalDevice;
 
-		void CreateVertexBuffer();
-		uint32_t FindMemoryType(uint32_t allowedTypes, VkMemoryPropertyFlags memoryPropertyFlags);
+		void PopulateVertexBuffer();
 	};
 
 

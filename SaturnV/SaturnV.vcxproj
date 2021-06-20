@@ -85,6 +85,12 @@
     <ClCompile Include="Engine\Core\Application.cpp" />
     <ClCompile Include="Engine\Core\Entrypoint.cpp" />
     <ClCompile Include="Engine\Core\FileIO.cpp" />
+    <ClCompile Include="Engine\Core\VulkanFunctionality\VulkanBufferImpl.cpp" />
+    <ClCompile Include="Engine\Core\VulkanFunctionality\VulkanInstantiationImpl.cpp" />
+    <ClCompile Include="Engine\Core\VulkanFunctionality\VulkanPhysicalDeviceImpl.cpp" />
+    <ClCompile Include="Engine\Core\VulkanFunctionality\VulkanQueuesImpl.cpp" />
+    <ClCompile Include="Engine\Core\VulkanFunctionality\VulkanSurfaceImpl.cpp" />
+    <ClCompile Include="Engine\Core\VulkanFunctionality\VulkanSwapChainImpl.cpp" />
     <ClCompile Include="Engine\Log\Log.cpp" />
     <ClCompile Include="Engine\Core\Window.cpp" />
     <ClCompile Include="Engine\Core\Renderer.cpp" />
@@ -97,6 +103,7 @@
     <ClInclude Include="Engine\Core\BasicShapes.h" />
     <ClInclude Include="Engine\Core\Entrypoint.h" />
     <ClInclude Include="Engine\Core\FileIO.h" />
+    <ClInclude Include="Engine\Core\VulkanFunctionality\VulkanCore.h" />
     <ClInclude Include="Engine\Log\Log.h" />
     <ClInclude Include="Engine\Saturn.h" />
     <ClInclude Include="Engine\Core\Window.h" />

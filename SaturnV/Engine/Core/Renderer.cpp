@@ -52,107 +52,91 @@ Saturn::Renderer::~Renderer()
 
 void Saturn::Renderer::Init()
 {
-	if(CreateInstance() == EXIT_SUCCESS)
+	CreateInstance(r_Instance);
+	CreateSurface(r_Instance, r_Window, r_Surface); 
+	DeviceProperties deviceProperties;
+	deviceProperties = GetPhysicalDevice(r_Instance, r_MainDevice.physicalDevice, r_Surface);
+	r_QueueIndices = deviceProperties.queueFamilyIndices;
+	r_SurfaceProperties = deviceProperties.surfaceProperties;
+	if (CreateLogicalDevice() == EXIT_SUCCESS)
 	{
-		if (CreateSurface() == EXIT_SUCCESS) {
-			LOG_PASS("Surface created!");
-			LOG_INFO("Fetching list of physical devices on system(GPU)");
-			if (GetPhysicalDevice() == EXIT_SUCCESS)
+		std::vector<Vertex> vertices = {
+												{{0.0, -0.4, 0.0}, {1.0, 0.0, 0.0}},
+												{{0.4, 0.4, 0.0}, {0.0, 1.0, 0.0}},
+												{{-0.4, 0.4, 0.0}, {0.0, 0.0, 1.0}}
+											};
+
+		r_Meshes.push_back(Mesh(r_MainDevice.physicalDevice, r_MainDevice.logicalDevice, vertices));
+
+		LOG_PASS("Logical device created!");
+		if (CreateSwapChain() == EXIT_SUCCESS)
+		{
+			LOG_PASS("Swapchain created successfully!");
+			if (CreateRenderPass() == EXIT_SUCCESS)
 			{
-				if (CreateLogicalDevice() == EXIT_SUCCESS)
+				LOG_PASS("Render pass created successfully!");
+				if (CreateGraphicsPipeline() == EXIT_SUCCESS)
 				{
-					std::vector<Vertex> vertices = {
-															{{0.0, -0.4, 0.0}, {1.0, 0.0, 0.0}},
-															{{0.4, 0.4, 0.0}, {0.0, 1.0, 0.0}},
-															{{-0.4, 0.4, 0.0}, {0.0, 0.0, 1.0}}
-														};
-
-					r_Meshes.push_back(Mesh(r_MainDevice.physicalDevice, r_MainDevice.logicalDevice, vertices));
-
-					LOG_PASS("Logical device created!");
-					if (CreateSwapChain() == EXIT_SUCCESS)
+					LOG_PASS("Graphics pipeline created successfully!");
+					if (CreateFrameBuffers() == EXIT_SUCCESS)
 					{
-						LOG_PASS("Swapchain created successfully!");
-						if (CreateRenderPass() == EXIT_SUCCESS)
+						LOG_PASS("Frame buffers created!");
+						if (CreateCommandPool() == EXIT_SUCCESS)
 						{
-							LOG_PASS("Render pass created successfully!");
-							if (CreateGraphicsPipeline() == EXIT_SUCCESS)
+							LOG_PASS("Command pool created!");
+							if (CreateCommandBuffers() == EXIT_SUCCESS)
 							{
-								LOG_PASS("Graphics pipeline created successfully!");
-								if (CreateFrameBuffers() == EXIT_SUCCESS)
+								LOG_PASS("Command buffers created!");
+								if (RecordCommands() == EXIT_SUCCESS)
 								{
-									LOG_PASS("Frame buffers created!");
-									if (CreateCommandPool() == EXIT_SUCCESS)
+									LOG_PASS("Commands recorded successfully!");
+									if (CreateSynchronisation() == EXIT_SUCCESS)
 									{
-										LOG_PASS("Command pool created!");
-										if (CreateCommandBuffers() == EXIT_SUCCESS)
-										{
-											LOG_PASS("Command buffers created!");
-											if (RecordCommands() == EXIT_SUCCESS)
-											{
-												LOG_PASS("Commands recorded successfully!");
-												if (CreateSynchronisation() == EXIT_SUCCESS)
-												{
-													LOG_PASS("Synchronisation created!");
-												}
-												else
-												{
-													LOG_FAIL("Synchronisation failed!");
-												}
-											}
-											else
-											{
-												LOG_FAIL("Failed to record commands!");
-											}
-										}
-										else
-										{
-											LOG_FAIL("Failed to create command buffers");
-										}
+										LOG_PASS("Synchronisation created!");
 									}
 									else
 									{
-										LOG_FAIL("Failed to created command pool!");
+										LOG_FAIL("Synchronisation failed!");
 									}
 								}
 								else
 								{
-									LOG_FAIL("Failed to create framebuffers");
+									LOG_FAIL("Failed to record commands!");
 								}
 							}
 							else
 							{
-								LOG_FAIL("Failed to create graphics pipeline!");
+								LOG_FAIL("Failed to create command buffers");
 							}
 						}
 						else
 						{
-							LOG_FAIL("Failed to created render pass!");
+							LOG_FAIL("Failed to created command pool!");
 						}
 					}
 					else
 					{
-						LOG_FAIL("Swapchain creation failed!");
+						LOG_FAIL("Failed to create framebuffers");
 					}
 				}
 				else
 				{
-					LOG_FAIL("Logical device creation failed");
+					LOG_FAIL("Failed to create graphics pipeline!");
 				}
 			}
 			else
 			{
-				LOG_FAIL("[ERROR] Failed to find any physical devices on your system!");
+				LOG_FAIL("Failed to created render pass!");
 			}
 		}
 		else
 		{
-			LOG_FAIL("Failed to create surface");
+			LOG_FAIL("Swapchain creation failed!");
 		}
 	}
 	else
 	{
-		LOG_FAIL("[ERROR] Vulkan instance creation failed!");
+		LOG_FAIL("Logical device creation failed");
 	}
 }
 
@@ -168,228 +152,6 @@ void Saturn::Renderer::Run()
 	WriteFile("Config.Saturn", fileContent);
 	LOG_PASS("Latest file config saved!");
 	LOG_PASS("DEBUG Content:\n" + fileContent);
-}
-
-bool Saturn::Renderer::CheckValidationLayerSupport()
-{
-	uint32_t layerCount;
-	vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
-
-	std::vector<VkLayerProperties> supportedLayers(layerCount);
-	vkEnumerateInstanceLayerProperties(&layerCount, supportedLayers.data());
-
-	for (int i = 0; i < r_ValidationLayers.size(); i++)
-	{
-		bool hasSupport = false;
-		for (int x = 0; x < layerCount; x++)
-		{
-			if (strcmp(r_ValidationLayers[i], supportedLayers[x].layerName) == 0)
-			{
-				hasSupport = true;
-				break;
-			}
-		}
-		if (!hasSupport)
-		{
-			LOG_PASS("Cool!");
-			return false;
-		}
-	}
-
-	return true;
-}
-
-int Saturn::Renderer::CreateInstance()
-{
-	//Information about the app
-	VkApplicationInfo appInfo = {};
-	appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-	appInfo.pApplicationName = "VULKAN APP";
-	appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-	appInfo.pEngineName = "Saturn Engine";
-	appInfo.engineVersion = VK_MAKE_VERSION(0, 1, 0);
-	appInfo.apiVersion = VK_API_VERSION_1_2;
-
-	//Instance of Vulkan program
-	VkInstanceCreateInfo instanceCreateInfo = {};
-	instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-	instanceCreateInfo.pApplicationInfo = &appInfo;
-
-	//list to hold all extension values
-	std::vector<const char*> instanceExtensions = std::vector<const char*>();
-
-	uint32_t glfwExtensionCount = 0; //GLFW may require multiple extensions
-	const char** glfwExtensions;
-
-	glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-
-	for (size_t i = 0; i < glfwExtensionCount; i++)
-	{
-		instanceExtensions.push_back(glfwExtensions[i]);
-	}
-
-	if (r_EnableValidationLayers) {
-		instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-	}
-
-	if (!CheckInstanceExtensionSupport(&instanceExtensions))
-	{
-		return EXIT_FAILURE;
-	}
-	else
-	{
-		LOG_PASS("Vulkan supports all extensions required by GLFW!");
-	}
-
-	if (!CheckValidationLayerSupport())
-	{
-		LOG_FAIL("Not all Validation Layers are supported");
-		return EXIT_FAILURE;
-	}
-	else
-	{
-		LOG_PASS("The requested Validation layer is supported by Vulkan!");
-	}
-
-	//instanceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(instanceExtensions.size());
-	instanceCreateInfo.enabledExtensionCount = glfwExtensionCount; // more convenient way of passing count
-	instanceCreateInfo.ppEnabledExtensionNames = instanceExtensions.data();
-
-	if (r_EnableValidationLayers) {
-		instanceCreateInfo.enabledLayerCount = static_cast<uint32_t>(r_ValidationLayers.size());
-		instanceCreateInfo.ppEnabledLayerNames = r_ValidationLayers.data();
-	}
-	else
-	{
-		instanceCreateInfo.enabledLayerCount = 0;
-	}
-
-	VkResult result = vkCreateInstance(&instanceCreateInfo, nullptr, &r_Instance);
-
-	if (result != VK_SUCCESS)
-	{
-		return EXIT_FAILURE;
-	}
-	else
-	{
-		return EXIT_SUCCESS;
-	}
-}
-
-//Compare the list of required extensions required by GLFW with the list of extensions the Vulkan supports
-bool Saturn::Renderer::CheckInstanceExtensionSupport(std::vector<const char*>* Extensions)
-{
-	//first get the number of supported extensions
-	uint32_t extensionCount = 0;
-	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
-
-	//Create a list of vkExtensionProperties using the count
-	std::vector<VkExtensionProperties> extensions(extensionCount);
-	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
-	
-	for (int i = 0; i < Extensions->size(); i++)
-	{
-		bool hasExtension = false;
-		for (int y = 0; y < extensions.size(); y++)
-		{
-			if (strcmp((*Extensions)[i], extensions[y].extensionName) == 0)
-			{
-				hasExtension = true;
-				break;
-			}
-		}
-
-		if (!hasExtension)
-		{
-			return false;
-		}
-	}
-
-	return true;
-}
-
-int Saturn::Renderer::GetPhysicalDevice()
-{
-	//Enumeration of physical devices
-	uint32_t deviceCount = 0;
-	vkEnumeratePhysicalDevices(r_Instance, &deviceCount, nullptr);
-	
-	//If no devices are available then return failure
-	if (deviceCount == 0)
-	{
-		return EXIT_FAILURE;
-	}
-
-	std::vector<VkPhysicalDevice> deviceList(deviceCount);
-	vkEnumeratePhysicalDevices(r_Instance, &deviceCount, deviceList.data()); //once the size is found populate it with device details
-	LOG_INFO("Found " + std::to_string(deviceCount) + " device(s), finding the suitable one");
-
-	for (int i = 0; i < deviceCount; i++)
-	{
-		if (CheckPhysicalDeviceSuitable(&deviceList[i]))
-		{
-			LOG_PASS("Found the suitable device!");
-			r_MainDevice.physicalDevice = deviceList[i];
-			break;
-		}
-	}
-
-	return EXIT_SUCCESS;
-}
-
-bool Saturn::Renderer::CheckPhysicalDeviceSuitable(VkPhysicalDevice* pDevice)
-{
-	VkPhysicalDeviceProperties deviceProperties;
-	vkGetPhysicalDeviceProperties(*pDevice, &deviceProperties);
-
-	LOG_INFO("Device Name: " + (std::string)deviceProperties.deviceName);
-	LOG_INFO("Device driver version: " + std::to_string(deviceProperties.driverVersion));
-	LOG_INFO("Device API version: " + std::to_string(deviceProperties.apiVersion));
-
-	VkPhysicalDeviceFeatures deviceFeatures;
-	vkGetPhysicalDeviceFeatures(*pDevice, &deviceFeatures);
-
-	//Fetch graphics queue family index
-	GetQueueFamilyIndices(pDevice);
-
-	bool extensioSupportStatus = CheckDeviceExtensionSupport(pDevice);
-
-	GetDetailsforSwapchain(pDevice);
-
-	return r_QueueIndices.IsValid() && extensioSupportStatus && !r_SurfaceProperties.presentationModes.empty() && !r_SurfaceProperties.supportedFormats.empty();
-}
-
-void Saturn::Renderer::GetQueueFamilyIndices(VkPhysicalDevice* pDevice)
-{
-	uint32_t queueFamilyCount = 0;
-	vkGetPhysicalDeviceQueueFamilyProperties(*pDevice, &queueFamilyCount, nullptr);
-
-	std::vector<VkQueueFamilyProperties> queueFamilyList(queueFamilyCount);
-	vkGetPhysicalDeviceQueueFamilyProperties(*pDevice, &queueFamilyCount, queueFamilyList.data());
-
-	for (int i = 0; i < queueFamilyCount; i++)
-	{
-		//Check whether the family has at east one queue in the family and also it has to be of type graphics queue
-		if (queueFamilyList[i].queueCount > 0 && queueFamilyList[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
-		{
-			r_QueueIndices.graphicsFamily = i; //graphics queue index is the i value 
-		}
-
-		//check if queue family supports presentation
-		VkBool32 presentationSupport = false;
-		vkGetPhysicalDeviceSurfaceSupportKHR(*pDevice, i, r_Surface, &presentationSupport);
-
-		if (queueFamilyList[i].queueCount > 0 && presentationSupport)
-		{
-			r_QueueIndices.presentationFamily = i;
-		}
-
-
-		if (r_QueueIndices.IsValid())
-		{
-			break;
-		}
-	}
 }
 
 int Saturn::Renderer::CreateLogicalDevice()
@@ -1017,18 +779,6 @@ int Saturn::Renderer::CreateSynchronisation()
 	return EXIT_SUCCESS;
 }
 
-int Saturn::Renderer::CreateSurface()
-{
-	VkResult result = glfwCreateWindowSurface(r_Instance, r_Window, nullptr, &r_Surface);
-
-	if (result != VK_SUCCESS)
-	{
-		return EXIT_FAILURE;
-	}
-	
-	return EXIT_SUCCESS;
-}
-
 bool Saturn::Renderer::CheckDeviceExtensionSupport(VkPhysicalDevice* pDevice)
 {
 	uint32_t supportedDeviceExtensionCount = 0;
@@ -1060,23 +810,4 @@ bool Saturn::Renderer::CheckDeviceExtensionSupport(VkPhysicalDevice* pDevice)
 	}
 
 	return true;
-}
-
-void Saturn::Renderer::GetDetailsforSwapchain(VkPhysicalDevice* pDevice)
-{
-	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(*pDevice, r_Surface, &r_SurfaceProperties.surfaceCapabilities);
-
-	uint32_t supportedFormatsCount = 0;
-	vkGetPhysicalDeviceSurfaceFormatsKHR(*pDevice, r_Surface, &supportedFormatsCount, nullptr);
-	std::vector<VkSurfaceFormatKHR> supportedFormats(supportedFormatsCount);
-	vkGetPhysicalDeviceSurfaceFormatsKHR(*pDevice, r_Surface, &supportedFormatsCount, supportedFormats.data());
-
-	uint32_t supportedPresentationModeCount = 0;
-	vkGetPhysicalDeviceSurfacePresentModesKHR(*pDevice, r_Surface, &supportedPresentationModeCount, nullptr);
-	std::vector<VkPresentModeKHR> supportedPresentationModes(supportedPresentationModeCount);
-	vkGetPhysicalDeviceSurfacePresentModesKHR(*pDevice, r_Surface, &supportedPresentationModeCount, supportedPresentationModes.data());
-
-	r_SurfaceProperties.supportedFormats = supportedFormats;
-	r_SurfaceProperties.presentationModes = supportedPresentationModes;
-
 }

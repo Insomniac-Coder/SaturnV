@@ -34,19 +34,9 @@ namespace Saturn {
 		glm::vec4 r_ClearColor = glm::vec4(0.15f, 0.15f, 0.15f, 1.0f);
 
 		//Vulkan Components
-		const std::vector<const char*> r_ValidationLayers = {
-			"VK_LAYER_KHRONOS_validation", //contains all useful validations
-		};
-
 		const std::vector<const char*> r_DeviceExtensions = {
 			VK_KHR_SWAPCHAIN_EXTENSION_NAME
 		};
-
-#ifdef _DEBUG
-		const bool r_EnableValidationLayers = true;
-#else
-		const bool r_EnableValidationLayers = false;
-#endif
 
 		VkInstance r_Instance; // instance of a vulkan program
 		struct
@@ -55,16 +45,7 @@ namespace Saturn {
 			VkDevice logicalDevice;
 		} r_MainDevice;
 
-		struct QueueFamilyIndices
-		{
-			int graphicsFamily = -1; //location of graphics queue family
-			int presentationFamily = -1;
-
-			bool IsValid()
-			{
-				return graphicsFamily >= 0 && presentationFamily >= 0;
-			}
-		} r_QueueIndices;
+		QueueFamilyIndices r_QueueIndices;
 
 		VkQueue r_GraphicsQueue;
 		VkQueue r_PresentationQueue;
@@ -73,12 +54,7 @@ namespace Saturn {
 		VkExtent2D r_Extent2D;
 		VkFormat r_ImageFormat;
 
-		struct SurfaceProperties
-		{
-			VkSurfaceCapabilitiesKHR surfaceCapabilities;
-			std::vector<VkSurfaceFormatKHR> supportedFormats;
-			std::vector<VkPresentModeKHR> presentationModes;
-		} r_SurfaceProperties;
+		SurfaceProperties r_SurfaceProperties;
 
 		struct SwapchainImage
 		{
@@ -103,17 +79,9 @@ namespace Saturn {
 
 		std::vector<Mesh> r_Meshes;
 
-		//Vulkan specific functions
-		bool CheckValidationLayerSupport();
 
-		int CreateInstance(); //creates a vulkan instance
-		int CreateSurface();
+		//Vulkan specific functions
 		bool CheckDeviceExtensionSupport(VkPhysicalDevice* pDevice);
-		void GetDetailsforSwapchain(VkPhysicalDevice* pDevice);
-		bool CheckInstanceExtensionSupport(std::vector<const char*>* Extensions); // confirms whether the extensions required by GLFW are supported by vulkan
-		int GetPhysicalDevice(); //post the creation of Vulkan instance we need to know what physical devices are present on the system
-		bool CheckPhysicalDeviceSuitable(VkPhysicalDevice* pDevice); // check whether the selected device is suitable or not
-		void GetQueueFamilyIndices(VkPhysicalDevice* pDevice); // Get the indices of queue families present on the GPU
 		int CreateLogicalDevice(); //Once we have picked a physical device and confirmed whether it's suitable or not, we will create logical device from it
 		VkSurfaceFormatKHR GetBestSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& surfaceFormats);
 		VkPresentModeKHR GetBestPresentationMode(const std::vector<VkPresentModeKHR>& presentationModes);
