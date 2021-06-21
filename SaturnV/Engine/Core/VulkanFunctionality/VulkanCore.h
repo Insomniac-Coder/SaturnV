@@ -23,10 +23,11 @@ struct QueueFamilyIndices
 {
 	int graphicsFamily = -1; //location of graphics queue family
 	int presentationFamily = -1;
+	int transferFamily = -1;
 
 	bool IsValid()
 	{
-		return graphicsFamily >= 0 && presentationFamily >= 0;
+		return graphicsFamily >= 0 && presentationFamily >= 0 && transferFamily >=0;
 	}
 };
 
@@ -57,5 +58,8 @@ SurfaceProperties GetDetailsForSwapChain(VkPhysicalDevice& physicalDeviceRef, Vk
 //Buffer Creation and memory allocation
 void CreateBuffer(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkBufferUsageFlags bufferUsageFlag, uint64_t bufferSize, VkBuffer& bufferRef, VkDeviceMemory& memoryRef, VkMemoryPropertyFlags memoryPropertyFlagsRef);
 uint32_t FindMemoryType(VkPhysicalDevice physicalDevice, uint32_t allowedProperties, VkMemoryPropertyFlags requiredPropertyFlags);
+
+//Buffer Copying function
+void CopyBuffer(VkDevice logicalDevice, VkQueue queue, VkCommandPool commandPool, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize bufferSize);
 
 #endif VULKANCORE_H

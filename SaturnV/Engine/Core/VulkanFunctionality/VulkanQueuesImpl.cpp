@@ -27,6 +27,10 @@ QueueFamilyIndices GetQueueFamilies(VkPhysicalDevice& physicalDeviceRef, VkSurfa
 			queueFamilyIndices.presentationFamily = i;
 		}
 
+		if (queueFamilyList[i].queueCount > 0 && queueFamilyList[i].queueFlags & VK_QUEUE_TRANSFER_BIT)
+		{
+			queueFamilyIndices.transferFamily = i;
+		}
 
 		if (queueFamilyIndices.IsValid())
 		{

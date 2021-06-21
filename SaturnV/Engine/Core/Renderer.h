@@ -49,6 +49,7 @@ namespace Saturn {
 
 		VkQueue r_GraphicsQueue;
 		VkQueue r_PresentationQueue;
+		VkQueue r_TransferQueue;
 		VkSurfaceKHR r_Surface;
 		VkSwapchainKHR r_Swapchain;
 		VkExtent2D r_Extent2D;
@@ -71,6 +72,7 @@ namespace Saturn {
 		VkRenderPass r_RenderPass;
 
 		VkCommandPool r_GraphicsCommandPool;
+		VkCommandPool r_TransferCommandPool;
 
 		//Sync
 		std::vector<VkSemaphore> r_ImageAvailable;

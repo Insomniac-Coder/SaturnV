@@ -31,6 +31,7 @@ Saturn::Renderer::~Renderer()
 		vkDestroyFence(r_MainDevice.logicalDevice, r_DrawFences[i], nullptr);
 	}
 	vkDestroyCommandPool(r_MainDevice.logicalDevice, r_GraphicsCommandPool, nullptr);
+	vkDestroyCommandPool(r_MainDevice.logicalDevice, r_TransferCommandPool, nullptr);
 	for (auto frameBuffer : r_SwapChainFrameBuffer)
 	{
 		vkDestroyFramebuffer(r_MainDevice.logicalDevice, frameBuffer, nullptr);
@@ -60,14 +61,6 @@ void Saturn::Renderer::Init()
 	r_SurfaceProperties = deviceProperties.surfaceProperties;
 	if (CreateLogicalDevice() == EXIT_SUCCESS)
 	{
-		std::vector<Vertex> vertices = {
-												{{0.0, -0.4, 0.0}, {1.0, 0.0, 0.0}},
-												{{0.4, 0.4, 0.0}, {0.0, 1.0, 0.0}},
-												{{-0.4, 0.4, 0.0}, {0.0, 0.0, 1.0}}
-											};
-
-		r_Meshes.push_back(Mesh(r_MainDevice.physicalDevice, r_MainDevice.logicalDevice, vertices));
-
 		LOG_PASS("Logical device created!");
 		if (CreateSwapChain() == EXIT_SUCCESS)
 		{
@@ -83,6 +76,21 @@ void Saturn::Renderer::Init()
 						LOG_PASS("Frame buffers created!");
 						if (CreateCommandPool() == EXIT_SUCCESS)
 						{
+							//vertex data
+							std::vector<Vertex> vertices = {
+												{{0.4, -0.4, 0.0}, {1.0, 0.0, 0.0}},
+												{{0.4, 0.4, 0.0}, {0.0, 1.0, 0.0}},
+												{{-0.4, 0.4, 0.0}, {0.0, 0.0, 1.0}},
+												{{-0.4, -0.4, 0.0}, {1.0, 1.0, 0.0}}
+							};
+
+							//index data
+							std::vector<uint32_t> indices = {
+																0,1,2,
+																2,3,0
+															};
+
+							r_Meshes.push_back(Mesh(r_MainDevice.physicalDevice, r_MainDevice.logicalDevice, vertices, indices, r_TransferQueue, r_TransferCommandPool));
 							LOG_PASS("Command pool created!");
 							if (CreateCommandBuffers() == EXIT_SUCCESS)
 							{
@@ -192,6 +200,7 @@ int Saturn::Renderer::CreateLogicalDevice()
 
 	vkGetDeviceQueue(r_MainDevice.logicalDevice, r_QueueIndices.graphicsFamily, 0, &r_GraphicsQueue);
 	vkGetDeviceQueue(r_MainDevice.logicalDevice, r_QueueIndices.presentationFamily, 0, &r_PresentationQueue);
+	vkGetDeviceQueue(r_MainDevice.logicalDevice, r_QueueIndices.transferFamily, 0, &r_TransferQueue);
 	return EXIT_SUCCESS;
 }
 
@@ -614,6 +623,10 @@ int Saturn::Renderer::CreateCommandPool()
 		return EXIT_FAILURE;
 	}
 
+	poolCreateInfo.queueFamilyIndex = r_QueueIndices.transferFamily;
+
+	result = vkCreateCommandPool(r_MainDevice.logicalDevice, &poolCreateInfo, nullptr, &r_TransferCommandPool);
+
 	return EXIT_SUCCESS;
 }
 
@@ -673,9 +686,11 @@ int Saturn::Renderer::RecordCommands()
 		VkBuffer vertexBuffers[] = { r_Meshes[0].GetVertexBuffer() };
 		VkDeviceSize offsets[] = { 0 };
 		vkCmdBindVertexBuffers(r_CommandBuffers[i], 0, 1, vertexBuffers, offsets);
+		vkCmdBindIndexBuffer(r_CommandBuffers[i], r_Meshes[0].GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
 		//execute pipeline
 #endif
-		vkCmdDraw(r_CommandBuffers[i], static_cast<uint32_t>(r_Meshes[0].GetVertexCount()), 1, 0, 0);
+		vkCmdDrawIndexed(r_CommandBuffers[i], static_cast<uint32_t>(r_Meshes[0].GetIndexCount()), 1, 0, 0, 0);
+		//vkCmdDraw(r_CommandBuffers[i], static_cast<uint32_t>(r_Meshes[0].GetVertexCount()), 1, 0, 0);
 		vkCmdEndRenderPass(r_CommandBuffers[i]);
 
 		result = vkEndCommandBuffer(r_CommandBuffers[i]);
